@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"bufio"
 	"os"
 	"reflect"
 	"strconv"
@@ -25,6 +26,18 @@ import (
 // @param destination: object where to store the result.
 // @param options (optional): options for the csv parsing.
 // @return an error if one occurs.
+func BOMCsvReader(r io.Reader) *bufio.Reader {
+	br := bufio.NewReader(r)
+	bs, err := br.Peek(3)
+	if err != nil {
+		return br
+	}
+	if bs[0] == 0xEF && bs[1] == 0xBB && bs[2] == 0xBF {
+		br.Discard(3)
+	}
+	return br
+}
+
 func LoadFromReader(file io.Reader, destination interface{}, options ...CsvOptions) error {
 	if len(options) > 1 {
 		return fmt.Errorf("error you can only pass one CsvOptions argument")
@@ -35,7 +48,7 @@ func LoadFromReader(file io.Reader, destination interface{}, options ...CsvOptio
 		option = options[0]
 	}
 
-	header, content, err := readFile(file, option.Separator, option.Header)
+	header, content, err := readFile(BOMCsvReader(file), option.Separator, option.Header)
 	if err != nil {
 		return fmt.Errorf("error reading csv from io.Reader: %v", err)
 	}

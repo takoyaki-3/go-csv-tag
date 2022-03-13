@@ -1,3 +1,5 @@
+https://github.com/artonge/go-csv-tag からフォークしてます
+
 # go-csv-tag
 
 Read csv file from Go using tags
